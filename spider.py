@@ -8,6 +8,9 @@ import argparse
 import sys
 import os
 from pathlib import Path
+import requests
+from urllib.parse import urlparse, urljoin
+import time
 
 
 class Spider:
@@ -25,12 +28,113 @@ class Spider:
         self.downloaded = set()
         self.visited_urls = set()
 
+        # HTTP configuration
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        })
+        self.session.timeout = 10  # 10 second timeout
+
+
+    def validate_url(self, url):
+        """
+        Validate URL format and return normalized URL.
+
+        Returns:
+            str: Normalized URL or None if invalid
+        """
+        try:
+            parsed = urlparse(url)
+
+            # Check if scheme exists, add http:// if missing
+            if not parsed.scheme:
+                url = 'http://' + url
+                parsed = urlparse(url)
+
+            # Valid schemes only
+            if parsed.scheme not in ['http', 'https']:
+                print(f"❌ Error: Invalid URL scheme '{parsed.scheme}'. Only http/https allowed.")
+                return None
+
+            # Check if netloc (domain) exists
+            if not parsed.netloc:
+                print(f"❌ Error: Invalid URL - missing domain.")
+                return None
+
+            return url
+        except Exception as e:
+            print(f"❌ Error: Invalid URL format - {e}")
+            return None
+
+    def fetch_page(self, url):
+        """
+        Fetch a webpage and return the HTML content.
+
+        Args:
+            url (str): URL to fetch
+
+        Returns:
+            str: HTML content or None if failed
+        """
+        try:
+            response = self.session.get(url, allow_redirects=True)
+
+            # Handle status codes
+            if response.status_code == 200:
+                return response.text
+            elif response.status_code == 404:
+                print(f"⚠️  Warning: Page not found (404) - {url}")
+                return None
+            elif response.status_code == 403:
+                print(f"⚠️  Warning: Access forbidden (403) - {url}")
+                return None
+            elif response.status_code == 429:
+                print(f"⚠️  Warning: Too many requests (429) - Rate limited. Waiting...")
+                time.sleep(5)
+                return None
+            elif 500 <= response.status_code < 600:
+                print(f"⚠️  Warning: Server error ({response.status_code}) - {url}")
+                return None
+            else:
+                print(f"⚠️  Warning: Unexpected status code ({response.status_code}) - {url}")
+                return None
+
+        except requests.exceptions.Timeout:
+            print(f"❌ Error: Request timeout - {url}")
+            return None
+        except requests.exceptions.ConnectionError:
+            print(f"❌ Error: Connection failed - {url}")
+            return None
+        except requests.exceptions.RequestException as e:
+            print(f"❌ Error: Request failed - {e}")
+            return None
+
     def run(self):
         """Main execution"""
-        print(f"Starting spider on: {self.url}")
-        print(f"Recursive: {self.recursive}, Depth: {self.depth}, Path: {self.path}")
-        # Implementation will go here
-        pass
+        print(f"🕷️  Spider starting...")
+        print(f"   URL: {self.url}")
+        print(f"   Recursive: {self.recursive}, Depth: {self.depth}, Path: {self.path}")
+        print()
+
+        # Phase 1: Validate URL
+        print("📋 Phase 1: Validating URL...")
+        validated_url = self.validate_url(self.url)
+        if not validated_url:
+            print("❌ Spider failed: Invalid URL")
+            sys.exit(1)
+        print(f"✅ URL valid: {validated_url}")
+        print()
+
+        # Phase 1: Fetch page
+        print("📋 Phase 1: Fetching page...")
+        html_content = self.fetch_page(validated_url)
+        if not html_content:
+            print("❌ Spider failed: Could not fetch page")
+            sys.exit(1)
+        print(f"✅ Page fetched successfully ({len(html_content)} bytes)")
+        print()
+
+        print("ℹ️  Phases 2-5: Implementation pending...")
 
 
 def main():
