@@ -158,6 +158,12 @@ def main():
         parser.print_help()
         sys.exit(1)
 
+    # Alert if -l is used without -r
+    if '-l' in sys.argv and not args.r:
+        print("⚠️  Warning: -l (depth level) only applies when using -r (recursive mode)")
+        print("   The depth limit will be ignored since recursive mode is not enabled.")
+        print()
+
     # Create Spider instance and run
     spider = Spider(
         url=args.URL,
