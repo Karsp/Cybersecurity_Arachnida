@@ -11,6 +11,7 @@ from pathlib import Path
 import requests
 from urllib.parse import urlparse, urljoin
 import time
+from bs4 import BeautifulSoup
 
 
 class Spider:
@@ -109,6 +110,106 @@ class Spider:
             print(f"❌ Error: Request failed - {e}")
             return None
 
+    def is_valid_image(self, url):
+        """
+        Check if URL points to a valid image file.
+
+        Args:
+            url (str): URL to check
+
+        Returns:
+            bool: True if valid image extension, False otherwise
+        """
+        try:
+            # Remove query parameters and fragments
+            path = urlparse(url).path.lower()
+            # Check if any valid extension is in the path
+            return any(path.endswith(ext) for ext in self.VALID_EXTENSIONS)
+        except Exception:
+            return False
+
+    def resolve_url(self, img_url, base_url):
+        """
+        Convert relative URLs to absolute URLs.
+
+        Args:
+            img_url (str): Image URL (can be relative or absolute)
+            base_url (str): Base URL for resolving relative URLs
+
+        Returns:
+            str: Absolute URL or None if invalid
+        """
+        try:
+            # Use urljoin to handle both absolute and relative URLs
+            absolute_url = urljoin(base_url, img_url)
+
+            # Validate the result
+            parsed = urlparse(absolute_url)
+            if parsed.scheme in ['http', 'https'] and parsed.netloc:
+                return absolute_url
+            return None
+        except Exception:
+            return None
+
+    def extract_images(self, html_content, base_url):
+        """
+        Parse HTML and extract all valid image URLs.
+
+        Args:
+            html_content (str): HTML page content
+            base_url (str): Base URL for resolving relative URLs
+
+        Returns:
+            list: List of absolute image URLs with valid extensions
+        """
+        image_urls = []
+
+        try:
+            soup = BeautifulSoup(html_content, 'lxml')
+
+            # Find all <img> tags
+            img_tags = soup.find_all('img')
+
+            if not img_tags:
+                print("   ℹ️  No images found on this page")
+                return image_urls
+
+            print(f"   Found {len(img_tags)} <img> tags")
+
+            for img in img_tags:
+                # Get src attribute
+                src = img.get('src')
+                if not src:
+                    continue
+
+                # Also check srcset for responsive images (use first one)
+                if not src and img.get('srcset'):
+                    srcset = img.get('srcset').split(',')[0].strip().split()[0]
+                    src = srcset
+
+                if not src:
+                    continue
+
+                # Resolve relative URLs to absolute
+                absolute_url = self.resolve_url(src, base_url)
+                if not absolute_url:
+                    continue
+
+                # Filter by valid extensions
+                if not self.is_valid_image(absolute_url):
+                    continue
+
+                # Avoid duplicates
+                if absolute_url not in image_urls:
+                    image_urls.append(absolute_url)
+
+            print(f"   ✅ Extracted {len(image_urls)} valid image URLs")
+            return image_urls
+
+        except Exception as e:
+            print(f"   ❌ Error parsing HTML: {e}")
+            return image_urls
+
     def run(self):
         """Main execution"""
         print(f"🕷️  Spider starting...")
@@ -134,7 +235,14 @@ class Spider:
         print(f"✅ Page fetched successfully ({len(html_content)} bytes)")
         print()
 
-        print("ℹ️  Phases 2-5: Implementation pending...")
+        # Phase 2: Extract images
+        print("📋 Phase 2: Extracting images...")
+        image_urls = self.extract_images(html_content, validated_url)
+        if not image_urls:
+            print("⚠️  No images found to download")
+        print()
+
+        print("ℹ️  Phases 3-5: Implementation pending...")
 
 
 def main():

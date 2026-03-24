@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>Test Image Page</h1>
+
+    <!-- Absolute URLs -->
+    <img src="https://example.com/images/photo1.jpg" alt="Photo 1">
+    <img src="https://example.com/images/photo2.png" alt="Photo 2">
+
+    <!-- Relative URLs -->
+    <img src="/images/photo3.gif" alt="Photo 3">
+    <img src="./images/photo4.bmp" alt="Photo 4">
+    <img src="images/photo5.jpeg" alt="Photo 5">
+
+    <!-- Invalid extensions (should be filtered) -->
+    <img src="https://example.com/images/document.pdf" alt="PDF">
+    <img src="https://example.com/images/video.mp4" alt="Video">
+
+    <!-- No src attribute -->
+    <img alt="No source">
+
+    <!-- srcset for responsive images -->
+    <img srcset="https://example.com/thumb.jpg 100w, https://example.com/large.png 300w" alt="Responsive">
+</body>
+</html>
