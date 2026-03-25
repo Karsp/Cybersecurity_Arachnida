@@ -433,8 +433,8 @@ class Spider:
         print(f"   Recursive: {self.recursive}, Depth: {self.depth}, Path: {self.path}")
         print()
 
-        # Phase 1: Validate URL
-        print("📋 Phase 1: Validating URL...")
+        # Step 1: Validate URL
+        print("📋 Step 1: Validating URL...")
         validated_url = self.validate_url(self.url)
         if not validated_url:
             print("❌ Spider failed: Invalid URL")
@@ -442,8 +442,8 @@ class Spider:
         print(f"✅ URL valid: {validated_url}")
         print()
 
-        # Phase 3: Setup download directory
-        print("📋 Phase 3: Setting up downloads...")
+        # Step 3: Setup download directory
+        print("📋 Step 2: Setting up downloads...")
         download_path = self.setup_download_dir()
         if not download_path:
             print("❌ Spider failed: Could not create download directory")
@@ -451,13 +451,13 @@ class Spider:
         print(f"✅ Download directory ready: {download_path}")
         print()
 
-        # Phase 4: Recursive or single-page crawling
+        # Step 4 or Step 2: Recursive or single-page crawling
         if self.recursive:
-            print("📋 Phase 4: Starting recursive crawl...")
+            print("📋 Step 3: Starting recursive crawl...")
             print()
             self.crawl_recursive(validated_url, 1, download_path)
         else:
-            print("📋 Phase 2: Fetching page...")
+            print("📋 Step 3: Fetching page...")
             html_content = self.fetch_page(validated_url)
             if not html_content:
                 print("❌ Spider failed: Could not fetch page")
@@ -465,16 +465,16 @@ class Spider:
             print(f"✅ Page fetched successfully ({len(html_content)} bytes)")
             print()
 
-            # Phase 2: Extract images
-            print("📋 Phase 2: Extracting images...")
+            # Step 2: Extract images
+            print("📋 Step 4: Extracting images...")
             image_urls = self.extract_images(html_content, validated_url)
             if not image_urls:
                 print("⚠️  No images found to download")
                 return
             print()
 
-            # Phase 3: Download images
-            print(f"📋 Phase 3: Downloading {len(image_urls)} images...")
+            # Step 3: Download images
+            print(f"📋 Step 5: Downloading {len(image_urls)} images...")
             downloaded_count = 0
             skipped_count = 0
 

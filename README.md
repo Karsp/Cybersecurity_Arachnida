@@ -71,36 +71,91 @@ Save downloaded images to a custom location:
 ./spider.py -r -l 4 -p ./website_images/ https://example.com
 ```
 
+## Testing
+
+### Test with Included Test Page
+
+Spider includes a comprehensive `test.html` file with all types of test cases. You can test Spider locally using Python's built-in HTTP server:
+
+```bash
+# Terminal 1: Start a local HTTP server
+python3 -m http.server 8000
+
+# Terminal 2: In another terminal, run Spider on the test page
+source venv/bin/activate
+./spider.py http://localhost:8000/test.html
+```
+
+### Test Cases Included in test.html
+
+The test page contains:
+
+1. **Valid Image Extensions** - Tests .jpg, .jpeg, .png, .gif, .bmp
+2. **Relative URL Resolution** - Tests ./path, /path, ../path, images/path
+3. **Query Parameters & Fragments** - Tests URL query strings and anchors
+4. **Invalid Extensions** - Tests filtering of .mp4, .pdf, .zip, .html
+5. **Missing Attributes** - Tests handling of missing src, empty src, srcset
+6. **Recursive Links** - Tests same-domain and external link filtering
+7. **Domain Variations** - Tests www prefix handling
+
+### Expected Results
+
+Running Spider on `test.html` should:
+- ✅ Extract 9+ valid images
+- ✅ Filter out 4 invalid file types
+- ✅ Handle relative URLs correctly
+- ✅ Detect and skip duplicates
+- ✅ Skip malformed images gracefully
+
+### Testing Recursive Mode
+
+```bash
+# Start test server (Terminal 1)
+python3 -m http.server 8000
+
+# Test recursive crawling (Terminal 2)
+source venv/bin/activate
+./spider.py -r -l 2 http://localhost:8000/test.html
+```
+
+This tests the recursive crawling functionality with depth limiting.
+
 ## Architecture Overview
 
-Spider is built in 4 main phases:
+Spider is built in 5 main steps:
 
-### Phase 1: URL Validation & Fetching
+### Step 1: URL Validation & Fetching
 - Validates URL format
 - Handles missing schemes (adds http://)
 - Fetches HTML with proper error handling
 - Handles HTTP status codes and timeouts
 
-### Phase 2: HTML Parsing & Image Extraction
+### Step 2: HTML Parsing & Image Extraction
 - Parses HTML using BeautifulSoup
 - Finds all `<img>` tags
 - Resolves relative URLs to absolute
 - Filters by valid image extensions
 - Removes duplicates
 
-### Phase 3: File Operations & Storage
+### Step 3: File Operations & Storage
 - Creates download directory structure
 - Generates unique filenames from URLs
 - Detects already-downloaded images
 - Saves binary data safely
 - Validates content-type is image
 
-### Phase 4: Recursive Crawling & Depth Tracking
+### Step 4: Recursive Crawling & Depth Tracking
 - Extracts links from HTML pages
 - Filters external domain links (stays on-domain)
 - Tracks visited URLs (prevents infinite loops)
 - Maintains depth counter
 - Recursively crawls found links up to depth limit
+
+### Step 5: Final Polish & Testing
+- Comprehensive error handling
+- Rate limiting and respectful requests
+- Complete CLI interface
+- Full documentation and testing
 
 ## Command Examples
 
@@ -122,6 +177,15 @@ Spider is built in 4 main phases:
 # Single page, saves to ./data/
 ```
 
+### Example 4: Test with local server
+```bash
+# Terminal 1
+python3 -m http.server 8000
+
+# Terminal 2
+./spider.py http://localhost:8000/test.html
+```
+
 ## Output Example
 
 ```
@@ -129,13 +193,13 @@ Spider is built in 4 main phases:
    URL: https://example.com
    Recursive: True, Depth: 2, Path: ./data/
 
-📋 Phase 1: Validating URL...
+📋 Step 1: Validating URL...
 ✅ URL valid: https://example.com
 
-📋 Phase 3: Setting up downloads...
+📋 Step 3: Setting up downloads...
 ✅ Download directory ready: data
 
-📋 Phase 4: Starting recursive crawl...
+📋 Step 4: Starting recursive crawl...
 
 📍 Crawling (depth 1/2): https://example.com
    Found 12 <img> tags
@@ -234,3 +298,4 @@ This project is for educational purposes.
 ## Contributing
 
 Contributions are welcome! Feel free to submit issues or improvements.
+

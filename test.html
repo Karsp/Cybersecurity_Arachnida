@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spider Test Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 30px 0; padding: 15px; border: 1px solid #ddd; }
+        h2 { color: #333; }
+        .test-case { margin: 10px 0; padding: 5px; background: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <h1>🕷️ Spider Web Scraper - Test Page</h1>
+    <p>This page contains various test cases for the Spider web scraper.</p>
+
+    <!-- SECTION 1: Valid Images with Different Extensions -->
+    <div class="section">
+        <h2>Section 1: Valid Image Extensions</h2>
+        <p>These images should all be extracted and downloaded:</p>
+
+        <div class="test-case">
+            <h3>JPEG Image (Absolute URL)</h3>
+            <img src="https://via.placeholder.com/150?text=JPEG.jpg" alt="JPEG Test">
+            <p>URL: https://via.placeholder.com/150?text=JPEG.jpg</p>
+        </div>
+
+        <div class="test-case">
+            <h3>PNG Image (Absolute URL)</h3>
+            <img src="https://via.placeholder.com/150?text=PNG.png" alt="PNG Test">
+            <p>URL: https://via.placeholder.com/150?text=PNG.png</p>
+        </div>
+
+        <div class="test-case">
+            <h3>GIF Image (Absolute URL)</h3>
+            <img src="https://via.placeholder.com/150?text=GIF.gif" alt="GIF Test">
+            <p>URL: https://via.placeholder.com/150?text=GIF.gif</p>
+        </div>
+
+        <div class="test-case">
+            <h3>BMP Image (Absolute URL)</h3>
+            <img src="https://via.placeholder.com/150?text=BMP.bmp" alt="BMP Test">
+            <p>URL: https://via.placeholder.com/150?text=BMP.bmp</p>
+        </div>
+
+        <div class="test-case">
+            <h3>JPG Image (Uppercase Extension)</h3>
+            <img src="https://via.placeholder.com/150?text=JPG.JPG" alt="JPG Test">
+            <p>URL: https://via.placeholder.com/150?text=JPG.JPG (uppercase)</p>
+        </div>
+    </div>
+
+    <!-- SECTION 2: Relative URL Resolution -->
+    <div class="section">
+        <h2>Section 2: Relative URL Resolution</h2>
+        <p>These images use relative URLs and should be resolved to absolute:</p>
+
+        <div class="test-case">
+            <h3>Relative Path (./image.jpg)</h3>
+            <img src="./images/relative.jpg" alt="Relative Path">
+            <p>URL: ./images/relative.jpg (relative)</p>
+        </div>
+
+        <div class="test-case">
+            <h3>Absolute Path (/image.jpg)</h3>
+            <img src="/images/absolute.jpg" alt="Absolute Path">
+            <p>URL: /images/absolute.jpg (absolute path)</p>
+        </div>
+
+        <div class="test-case">
+            <h3>Parent Directory (../image.jpg)</h3>
+            <img src="../images/parent.jpg" alt="Parent Directory">
+            <p>URL: ../images/parent.jpg (parent directory)</p>
+        </div>
+
+        <div class="test-case">
+            <h3>Sibling Directory (images/sibling.jpg)</h3>
+            <img src="images/sibling.jpg" alt="Sibling Directory">
+            <p>URL: images/sibling.jpg (sibling directory)</p>
+        </div>
+    </div>
+
+    <!-- SECTION 3: Query Parameters and Special Cases -->
+    <div class="section">
+        <h2>Section 3: Query Parameters and Special Cases</h2>
+        <p>URLs with query parameters and special handling:</p>
+
+        <div class="test-case">
+            <h3>Image with Query Parameters</h3>
+            <img src="https://via.placeholder.com/150?text=Query.jpg?size=large&format=png" alt="Query Params">
+            <p>URL: ...?size=large&format=png (should be extracted)</p>
+        </div>
+
+        <div class="test-case">
+            <h3>Image with Fragment (Anchor)</h3>
+            <img src="https://via.placeholder.com/150?text=Fragment.jpg#section" alt="Fragment">
+            <p>URL: ...#section (fragment should be removed by crawler)</p>
+        </div>
+
+        <div class="test-case">
+            <h3>Duplicate Image (appears twice)</h3>
+            <img src="https://via.placeholder.com/150?text=Duplicate.jpg" alt="Duplicate 1">
+            <img src="https://via.placeholder.com/150?text=Duplicate.jpg" alt="Duplicate 2">
+            <p>URL: Same image appears twice (should only download once)</p>
+        </div>
+    </div>
+
+    <!-- SECTION 4: Invalid Images (Should be Filtered) -->
+    <div class="section">
+        <h2>Section 4: Invalid Images (Should be Filtered Out)</h2>
+        <p>These should NOT be extracted:</p>
+
+        <div class="test-case">
+            <h3>Video File (MP4)</h3>
+            <img src="https://via.placeholder.com/150?text=Video.mp4" alt="Video">
+            <p>URL: ...video.mp4 (invalid extension - should be filtered)</p>
+        </div>
+
+        <div class="test-case">
+            <h3>PDF Document</h3>
+            <img src="https://via.placeholder.com/150?text=Document.pdf" alt="PDF">
+            <p>URL: ...document.pdf (invalid extension - should be filtered)</p>
+        </div>
+
+        <div class="test-case">
+            <h3>Archive File (ZIP)</h3>
+            <img src="https://via.placeholder.com/150?text=Archive.zip" alt="ZIP">
+            <p>URL: ...archive.zip (invalid extension - should be filtered)</p>
+        </div>
+
+        <div class="test-case">
+            <h3>HTML File</h3>
+            <img src="https://via.placeholder.com/150?text=Page.html" alt="HTML">
+            <p>URL: ...page.html (invalid extension - should be filtered)</p>
+        </div>
+    </div>
+
+    <!-- SECTION 5: Missing Source Attributes -->
+    <div class="section">
+        <h2>Section 5: Missing or Empty Attributes (Should be Skipped)</h2>
+        <p>These images should be skipped with no errors:</p>
+
+        <div class="test-case">
+            <h3>Image with No src Attribute</h3>
+            <img alt="No source attribute">
+            <p>No src attribute - should be skipped gracefully</p>
+        </div>
+
+        <div class="test-case">
+            <h3>Image with Empty src</h3>
+            <img src="" alt="Empty source">
+            <p>src="" - should be skipped gracefully</p>
+        </div>
+
+        <div class="test-case">
+            <h3>Responsive Image with srcset</h3>
+            <img srcset="https://via.placeholder.com/100?text=Small.jpg 100w, https://via.placeholder.com/300?text=Large.jpg 300w"
+                 alt="Responsive Image">
+            <p>srcset with multiple sizes (first one should be extracted)</p>
+        </div>
+    </div>
+
+    <!-- SECTION 6: Links for Recursive Crawling -->
+    <div class="section">
+        <h2>Section 6: Links for Recursive Crawling</h2>
+        <p>When using -r flag, spider should follow these links:</p>
+
+        <div class="test-case">
+            <h3>Same Domain Links (Should be Followed)</h3>
+            <ul>
+                <li><a href="/page1">Absolute path link</a></li>
+                <li><a href="./page2">Relative path link</a></li>
+                <li><a href="/gallery">Gallery page</a></li>
+                <li><a href="/images">Images directory</a></li>
+            </ul>
+            <p>These links should be followed during recursive crawling</p>
+        </div>
+
+        <div class="test-case">
+            <h3>External Domain Links (Should be Filtered Out)</h3>
+            <ul>
+                <li><a href="https://google.com">External site (google.com)</a></li>
+                <li><a href="https://github.com">External site (github.com)</a></li>
+                <li><a href="https://example.org">External site (example.org)</a></li>
+            </ul>
+            <p>External links should NOT be followed to stay on-domain</p>
+        </div>
+
+        <div class="test-case">
+            <h3>Links with Fragments/Anchors (Should be Cleaned)</h3>
+            <ul>
+                <li><a href="/page#section1">Link with section anchor</a></li>
+                <li><a href="/page#top">Link with top anchor</a></li>
+                <li><a href="/gallery#photos">Gallery with anchor</a></li>
+            </ul>
+            <p>Anchors should be removed from URLs before crawling</p>
+        </div>
+
+        <div class="test-case">
+            <h3>Duplicate Links (Should be Detected)</h3>
+            <ul>
+                <li><a href="/page">Page link (first)</a></li>
+                <li><a href="/page?ref=header">Page link (with query param)</a></li>
+                <li><a href="/page">Page link (duplicate)</a></li>
+            </ul>
+            <p>Duplicate links should only be visited once</p>
+        </div>
+    </div>
+
+    <!-- SECTION 7: Domain Matching Test -->
+    <div class="section">
+        <h2>Section 7: Domain Variation Links</h2>
+        <p>Testing same-domain detection with www prefix:</p>
+
+        <div class="test-case">
+            <h3>WWW Prefix Variations (Same Domain)</h3>
+            <ul>
+                <li><a href="https://www.example.com/page">With www prefix</a></li>
+                <li><a href="https://example.com/page">Without www prefix</a></li>
+                <li><a href="http://example.com/page">HTTP version</a></li>
+                <li><a href="https://example.com/page">HTTPS version</a></li>
+            </ul>
+            <p>All should be considered same domain</p>
+        </div>
+    </div>
+
+    <!-- FOOTER WITH STATISTICS -->
+    <div class="section">
+        <h2>Test Statistics</h2>
+        <ul>
+            <li><strong>Valid Images:</strong> 5 (jpg, jpeg, png, gif, bmp - various URLs)</li>
+            <li><strong>Invalid Images:</strong> 4 (mp4, pdf, zip, html - should be filtered)</li>
+            <li><strong>Special Cases:</strong> 4 (query params, fragments, duplicates, responsive)</li>
+            <li><strong>Relative URLs:</strong> 4 different formats (./,  /, ../, direct)</li>
+            <li><strong>Same-Domain Links:</strong> 8+ for recursive crawling</li>
+            <li><strong>External Links:</strong> 3 (should be filtered)</li>
+            <li><strong>Error Cases:</strong> 3 (missing src, empty src, no href)</li>
+        </ul>
+        <p><strong>Expected Downloads (single page):</strong> 9 images (5 valid + 4 special cases)</p>
+        <p><strong>Expected Filtered Out:</strong> 4 images (invalid extensions)</p>
+    </div>
+
+    <footer style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; text-align: center;">
+        <p>🕷️ Spider Test Page - Created for educational purposes</p>
+        <p>Last updated: March 2026</p>
+    </footer>
+
+</body>
+</html>
