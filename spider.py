@@ -300,6 +300,132 @@ class Spider:
             print(f"   ❌ Error saving file: {e}")
             return False
 
+    def is_same_domain(self, url1, url2):
+        """
+        Check if two URLs belong to the same domain.
+
+        Args:
+            url1 (str): First URL
+            url2 (str): Second URL
+
+        Returns:
+            bool: True if same domain, False otherwise
+        """
+        try:
+            domain1 = urlparse(url1).netloc.lower()
+            domain2 = urlparse(url2).netloc.lower()
+
+            # Handle www prefix variations
+            domain1 = domain1.replace('www.', '')
+            domain2 = domain2.replace('www.', '')
+
+            return domain1 == domain2
+        except Exception:
+            return False
+
+    def extract_links(self, html_content, base_url):
+        """
+        Parse HTML and extract all valid links for crawling.
+
+        Args:
+            html_content (str): HTML page content
+            base_url (str): Base URL for resolving relative URLs
+
+        Returns:
+            list: List of absolute URLs found on the page
+        """
+        links = []
+
+        try:
+            soup = BeautifulSoup(html_content, 'lxml')
+
+            # Find all <a> tags
+            a_tags = soup.find_all('a', href=True)
+
+            for a in a_tags:
+                href = a.get('href')
+                if not href:
+                    continue
+
+                # Resolve relative URLs to absolute
+                absolute_url = self.resolve_url(href, base_url)
+                if not absolute_url:
+                    continue
+
+                # Filter out fragments and anchors (url#section)
+                parsed = urlparse(absolute_url)
+                clean_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+                if parsed.query:
+                    clean_url += f"?{parsed.query}"
+
+                # Stay on same domain
+                if not self.is_same_domain(absolute_url, base_url):
+                    continue
+
+                # Avoid duplicates
+                if clean_url not in links:
+                    links.append(clean_url)
+
+            return links
+        except Exception as e:
+            print(f"   ❌ Error extracting links: {e}")
+            return links
+
+    def crawl_recursive(self, url, current_depth, download_path):
+        """
+        Recursively crawl website and download images.
+
+        Args:
+            url (str): URL to crawl
+            current_depth (int): Current depth level
+            download_path (str): Path to save downloads
+        """
+        # Depth limit check
+        if current_depth > self.depth:
+            return
+
+        # Already visited check
+        if url in self.visited_urls:
+            return
+
+        # Mark as visited
+        self.visited_urls.add(url)
+
+        print(f"📍 Crawling (depth {current_depth}/{self.depth}): {url}")
+
+        # Fetch page
+        html_content = self.fetch_page(url)
+        if not html_content:
+            return
+
+        # Extract and download images
+        image_urls = self.extract_images(html_content, url)
+        for image_url in image_urls:
+            if image_url in self.downloaded:
+                continue
+
+            file_path = self.get_unique_filename(image_url, download_path)
+            if not file_path:
+                continue
+
+            if self.download_image(image_url, file_path):
+                self.downloaded.add(image_url)
+
+            time.sleep(0.5)
+
+        print()
+
+        # Recursive: Extract and crawl links if not at max depth
+        if current_depth < self.depth:
+            print(f"   Extracting links for next level...")
+            links = self.extract_links(html_content, url)
+            print(f"   Found {len(links)} links on this page")
+            print()
+
+            for link in links:
+                if link not in self.visited_urls:
+                    self.crawl_recursive(link, current_depth + 1, download_path)
+
     def run(self):
         """Main execution"""
         print(f"🕷️  Spider starting...")
@@ -316,24 +442,7 @@ class Spider:
         print(f"✅ URL valid: {validated_url}")
         print()
 
-        # Phase 1: Fetch page
-        print("📋 Phase 1: Fetching page...")
-        html_content = self.fetch_page(validated_url)
-        if not html_content:
-            print("❌ Spider failed: Could not fetch page")
-            sys.exit(1)
-        print(f"✅ Page fetched successfully ({len(html_content)} bytes)")
-        print()
-
-        # Phase 2: Extract images
-        print("📋 Phase 2: Extracting images...")
-        image_urls = self.extract_images(html_content, validated_url)
-        if not image_urls:
-            print("⚠️  No images found to download")
-            return
-        print()
-
-        # Phase 3: Download images
+        # Phase 3: Setup download directory
         print("📋 Phase 3: Setting up downloads...")
         download_path = self.setup_download_dir()
         if not download_path:
@@ -342,36 +451,66 @@ class Spider:
         print(f"✅ Download directory ready: {download_path}")
         print()
 
-        print(f"📋 Phase 3: Downloading {len(image_urls)} images...")
-        downloaded_count = 0
-        skipped_count = 0
+        # Phase 4: Recursive or single-page crawling
+        if self.recursive:
+            print("📋 Phase 4: Starting recursive crawl...")
+            print()
+            self.crawl_recursive(validated_url, 1, download_path)
+        else:
+            print("📋 Phase 2: Fetching page...")
+            html_content = self.fetch_page(validated_url)
+            if not html_content:
+                print("❌ Spider failed: Could not fetch page")
+                sys.exit(1)
+            print(f"✅ Page fetched successfully ({len(html_content)} bytes)")
+            print()
 
-        for i, image_url in enumerate(image_urls, 1):
-            print(f"   [{i}/{len(image_urls)}] Processing: {image_url}")
+            # Phase 2: Extract images
+            print("📋 Phase 2: Extracting images...")
+            image_urls = self.extract_images(html_content, validated_url)
+            if not image_urls:
+                print("⚠️  No images found to download")
+                return
+            print()
 
-            # Get unique filename (skip if already downloaded)
-            file_path = self.get_unique_filename(image_url, download_path)
-            if not file_path:
-                print(f"   ⏭️  Skipped (already downloaded)")
-                skipped_count += 1
-                continue
+            # Phase 3: Download images
+            print(f"📋 Phase 3: Downloading {len(image_urls)} images...")
+            downloaded_count = 0
+            skipped_count = 0
 
-            # Download image
-            if self.download_image(image_url, file_path):
-                self.downloaded.add(image_url)
-                downloaded_count += 1
+            for i, image_url in enumerate(image_urls, 1):
+                print(f"   [{i}/{len(image_urls)}] Processing: {image_url}")
 
-            # Small delay to be respectful to server
-            time.sleep(0.5)
+                # Get unique filename (skip if already downloaded)
+                file_path = self.get_unique_filename(image_url, download_path)
+                if not file_path:
+                    print(f"   ⏭️  Skipped (already downloaded)")
+                    skipped_count += 1
+                    continue
 
-        print()
-        print("📊 Download Summary:")
-        print(f"   ✅ Downloaded: {downloaded_count}")
-        print(f"   ⏭️  Skipped: {skipped_count}")
-        print(f"   📁 Saved to: {download_path}")
-        print()
+                # Download image
+                if self.download_image(image_url, file_path):
+                    self.downloaded.add(image_url)
+                    downloaded_count += 1
 
-        print("ℹ️  Phases 4-5: Implementation pending...")
+                # Small delay to be respectful to server
+                time.sleep(0.5)
+
+            print()
+            print("📊 Download Summary:")
+            print(f"   ✅ Downloaded: {downloaded_count}")
+            print(f"   ⏭️  Skipped: {skipped_count}")
+            print(f"   📁 Saved to: {download_path}")
+            print()
+
+        # Final summary for recursive mode
+        if self.recursive:
+            print()
+            print("📊 Recursive Crawl Summary:")
+            print(f"   📍 Pages visited: {len(self.visited_urls)}")
+            print(f"   ✅ Images downloaded: {len(self.downloaded)}")
+            print(f"   📁 Saved to: {download_path}")
+            print()
 
 
 def main():
