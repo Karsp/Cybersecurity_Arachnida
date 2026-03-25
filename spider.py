@@ -12,6 +12,7 @@ import requests
 from urllib.parse import urlparse, urljoin
 import time
 from bs4 import BeautifulSoup
+import hashlib
 
 
 class Spider:
@@ -210,6 +211,95 @@ class Spider:
             print(f"   ❌ Error parsing HTML: {e}")
             return image_urls
 
+    def setup_download_dir(self):
+        """
+        Create download directory if it doesn't exist.
+
+        Returns:
+            str: Path to download directory or None if failed
+        """
+        try:
+            download_path = Path(self.path)
+            download_path.mkdir(parents=True, exist_ok=True)
+            return str(download_path)
+        except Exception as e:
+            print(f"❌ Error creating directory '{self.path}': {e}")
+            return None
+
+    def get_unique_filename(self, image_url, download_path):
+        """
+        Generate unique filename for image to avoid duplicates.
+
+        Args:
+            image_url (str): URL of the image
+            download_path (str): Path to save directory
+
+        Returns:
+            str: Absolute path to save file or None if invalid
+        """
+        try:
+            # Extract filename from URL
+            parsed_url = urlparse(image_url)
+            original_filename = Path(parsed_url.path).name
+
+            if not original_filename:
+                # Generate filename from URL hash if path is empty
+                url_hash = hashlib.md5(image_url.encode()).hexdigest()[:8]
+                original_filename = f"image_{url_hash}.jpg"
+
+            # Check if file already exists
+            file_path = Path(download_path) / original_filename
+            if file_path.exists():
+                # File already downloaded, skip
+                return None
+
+            return str(file_path)
+        except Exception as e:
+            print(f"   ❌ Error generating filename: {e}")
+            return None
+
+    def download_image(self, image_url, file_path):
+        """
+        Download image from URL and save to file.
+
+        Args:
+            image_url (str): URL of image to download
+            file_path (str): Path where to save the image
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            response = self.session.get(image_url, timeout=10)
+
+            if response.status_code != 200:
+                print(f"   ⚠️  Failed to download: {image_url} (HTTP {response.status_code})")
+                return False
+
+            # Check content type is image
+            content_type = response.headers.get('Content-Type', '').lower()
+            if 'image' not in content_type:
+                print(f"   ⚠️  Not an image (content-type: {content_type}): {image_url}")
+                return False
+
+            # Save binary data
+            with open(file_path, 'wb') as f:
+                f.write(response.content)
+
+            file_size = len(response.content) / 1024  # KB
+            print(f"   ✅ Downloaded: {Path(file_path).name} ({file_size:.1f} KB)")
+            return True
+
+        except requests.exceptions.Timeout:
+            print(f"   ❌ Timeout downloading: {image_url}")
+            return False
+        except requests.exceptions.RequestException as e:
+            print(f"   ❌ Error downloading {image_url}: {e}")
+            return False
+        except Exception as e:
+            print(f"   ❌ Error saving file: {e}")
+            return False
+
     def run(self):
         """Main execution"""
         print(f"🕷️  Spider starting...")
@@ -240,9 +330,48 @@ class Spider:
         image_urls = self.extract_images(html_content, validated_url)
         if not image_urls:
             print("⚠️  No images found to download")
+            return
         print()
 
-        print("ℹ️  Phases 3-5: Implementation pending...")
+        # Phase 3: Download images
+        print("📋 Phase 3: Setting up downloads...")
+        download_path = self.setup_download_dir()
+        if not download_path:
+            print("❌ Spider failed: Could not create download directory")
+            sys.exit(1)
+        print(f"✅ Download directory ready: {download_path}")
+        print()
+
+        print(f"📋 Phase 3: Downloading {len(image_urls)} images...")
+        downloaded_count = 0
+        skipped_count = 0
+
+        for i, image_url in enumerate(image_urls, 1):
+            print(f"   [{i}/{len(image_urls)}] Processing: {image_url}")
+
+            # Get unique filename (skip if already downloaded)
+            file_path = self.get_unique_filename(image_url, download_path)
+            if not file_path:
+                print(f"   ⏭️  Skipped (already downloaded)")
+                skipped_count += 1
+                continue
+
+            # Download image
+            if self.download_image(image_url, file_path):
+                self.downloaded.add(image_url)
+                downloaded_count += 1
+
+            # Small delay to be respectful to server
+            time.sleep(0.5)
+
+        print()
+        print("📊 Download Summary:")
+        print(f"   ✅ Downloaded: {downloaded_count}")
+        print(f"   ⏭️  Skipped: {skipped_count}")
+        print(f"   📁 Saved to: {download_path}")
+        print()
+
+        print("ℹ️  Phases 4-5: Implementation pending...")
 
 
 def main():
