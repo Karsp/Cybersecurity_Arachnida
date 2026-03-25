@@ -73,52 +73,95 @@ Save downloaded images to a custom location:
 
 ## Testing
 
-### Test with Included Test Page
+### Test Suite Organization
 
-Spider includes a comprehensive `test.html` file with all types of test cases. You can test Spider locally using Python's built-in HTTP server:
+All test files are organized in the `test/` directory:
 
-```bash
-# Terminal 1: Start a local HTTP server
-python3 -m http.server 8000
-
-# Terminal 2: In another terminal, run Spider on the test page
-source venv/bin/activate
-./spider.py http://localhost:8000/test.html
+```
+test/
+├── page0.html           # Main page (Depth 1) - 4 images
+├── page1.html           # Gallery (Depth 2) - 3 images
+├── page2.html           # Portfolio (Depth 3) - 4 images
+├── page3.html           # Archive (Depth 4) - 2 images
+├── page4.html           # Final page (Depth 5) - 2 images
+├── page5.html           # Beyond limit (Depth 6) - 2 images
+├── test.html            # Feature test page (9+ images)
+├── images/              # Dummy PNG image files
+│   ├── image1.jpg
+│   ├── image2.jpeg
+│   ├── image3.gif
+│   ├── image4.png
+│   └── image5.bmp
+└── TESTING.md           # Detailed testing guide
 ```
 
-### Test Cases Included in test.html
+### Quick Test: Single Page Crawl
 
-The test page contains:
-
-1. **Valid Image Extensions** - Tests .jpg, .jpeg, .png, .gif, .bmp
-2. **Relative URL Resolution** - Tests ./path, /path, ../path, images/path
-3. **Query Parameters & Fragments** - Tests URL query strings and anchors
-4. **Invalid Extensions** - Tests filtering of .mp4, .pdf, .zip, .html
-5. **Missing Attributes** - Tests handling of missing src, empty src, srcset
-6. **Recursive Links** - Tests same-domain and external link filtering
-7. **Domain Variations** - Tests www prefix handling
-
-### Expected Results
-
-Running Spider on `test.html` should:
-- ✅ Extract 9+ valid images
-- ✅ Filter out 4 invalid file types
-- ✅ Handle relative URLs correctly
-- ✅ Detect and skip duplicates
-- ✅ Skip malformed images gracefully
-
-### Testing Recursive Mode
+Test Spider with a simple single-page download:
 
 ```bash
-# Start test server (Terminal 1)
+# Terminal 1: Start HTTP server (from project root)
 python3 -m http.server 8000
 
-# Test recursive crawling (Terminal 2)
+# Terminal 2: In another terminal, run Spider
 source venv/bin/activate
-./spider.py -r -l 2 http://localhost:8000/test.html
+./spider.py http://localhost:8000/test/page0.html
 ```
 
-This tests the recursive crawling functionality with depth limiting.
+**Expected**: Downloads 4 images from page0.html to `./data/`
+
+### Test: Recursive Crawling with Depth Limiting
+
+Test the full recursive crawling suite:
+
+```bash
+# Terminal 1: Start HTTP server (from project root)
+python3 -m http.server 8000
+
+# Terminal 2: Crawl up to depth 5
+source venv/bin/activate
+./spider.py -r -l 5 http://localhost:8000/test/page0.html
+```
+
+**Expected Results:**
+- ✅ Visits pages 0-4 (depths 1-5)
+- ✅ Does NOT visit page5 (depth 6, beyond limit)
+- ✅ Downloads ~15 total images
+- ✅ Detects duplicates and skips them
+
+### Test Cases Available
+
+1. **Feature Test** (`test/test.html`)
+   - Tests all image formats (.jpg, .png, .gif, .bmp)
+   - Tests relative and absolute URL resolution
+   - Tests query parameters and fragments
+   - Tests invalid extensions filtering
+
+2. **Recursive Crawl Test** (`test/page0.html` - `test/page5.html`)
+   - Tests multi-page recursive crawling
+   - Tests depth limiting (page5 should not be crawled with -l 5)
+   - Tests duplicate image detection
+   - Tests same-domain filtering
+
+### For Detailed Testing Instructions
+
+See `test/TESTING.md` for:
+- All testing scenarios with expected results
+- Different depth level tests
+- Duplicate detection verification
+- Depth limiting validation
+
+### Example 4: Test with local server
+```bash
+# Terminal 1
+python3 -m http.server 8000
+
+# Terminal 2
+./spider.py http://localhost:8000/test/page0.html
+
+# Or with recursion
+./spider.py -r -l 2 http://localhost:8000/test/page0.html
+```
 
 ## Architecture Overview
 
@@ -179,11 +222,20 @@ Spider is built in 5 main steps:
 
 ### Example 4: Test with local server
 ```bash
-# Terminal 1
+# Terminal 1 (from project root)
 python3 -m http.server 8000
 
-# Terminal 2
-./spider.py http://localhost:8000/test.html
+# Terminal 2 (from project root)
+source venv/bin/activate
+
+# Single page test
+./spider.py http://localhost:8000/test/page0.html
+
+# Recursive test (depth 5)
+./spider.py -r -l 5 http://localhost:8000/test/page0.html
+
+# With custom save directory
+./spider.py -r -l 5 -p ./test_downloads/ http://localhost:8000/test/page0.html
 ```
 
 ## Output Example

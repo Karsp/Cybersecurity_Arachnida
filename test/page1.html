@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spider Test - Page 1 (Depth 2)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .section { margin: 20px 0; padding: 15px; border-left: 4px solid #17a2b8; }
+        h1 { color: #17a2b8; }
+        .images { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 15px 0; }
+        .image-box { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        img { max-width: 100%; height: auto; }
+        .links { margin: 15px 0; }
+        .links a { display: inline-block; margin-right: 10px; padding: 8px 12px; background: #17a2b8; color: white; text-decoration: none; border-radius: 4px; }
+        .links a:hover { background: #117a8b; }
+        .depth-badge { background: #17a2b8; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕷️ Spider Test Suite - Page 1</h1>
+        <p><span class="depth-badge">DEPTH 2</span> - Gallery section with more images</p>
+
+        <div class="section">
+            <h2>Page 1 Gallery Images (3 images)</h2>
+            <div class="images">
+                <div class="image-box">
+                    <img src="./images/image1.jpg" alt="Gallery Image 1">
+                    <p>image1.jpg</p>
+                </div>
+                <div class="image-box">
+                    <img src="./images/image5.bmp" alt="Gallery Image 5">
+                    <p>image5.bmp</p>
+                </div>
+                <div class="image-box">
+                    <img src="./images/image2.jpeg" alt="Gallery Image 2">
+                    <p>./images/image2.jpeg</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Continue Exploring</h2>
+            <div class="links">
+                <a href="page0.html">← Back to Main</a>
+                <a href="page2.html">→ Page 2 (Depth 3)</a>
+                <a href="page3.html">→ Page 3 (Depth 3)</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Page Information</h2>
+            <ul>
+                <li><strong>Page ID:</strong> page1.html (DEPTH 2)</li>
+                <li><strong>Images on this page:</strong> 3</li>
+                <li><strong>Links available:</strong> page2, page3</li>
+            </ul>
+        </div>
+
+        <footer style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; text-align: center; color: #666;">
+            <p>🕷️ Spider Recursive Crawling Test - Page 2/5</p>
+        </footer>
+    </div>
+</body>
+</html>

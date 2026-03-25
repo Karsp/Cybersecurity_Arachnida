@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spider Test - Page 4 (Depth 5 - Max)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .section { margin: 20px 0; padding: 15px; border-left: 4px solid #dc3545; }
+        h1 { color: #dc3545; }
+        .images { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 15px 0; }
+        .image-box { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        img { max-width: 100%; height: auto; }
+        .links { margin: 15px 0; }
+        .links a { display: inline-block; margin-right: 10px; padding: 8px 12px; background: #dc3545; color: white; text-decoration: none; border-radius: 4px; }
+        .links a:hover { background: #c82333; }
+        .depth-badge { background: #dc3545; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold; }
+        .max-depth { background: #fff3cd; border: 2px solid #dc3545; padding: 15px; border-radius: 4px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕷️ Spider Test Suite - Page 4</h1>
+        <p><span class="depth-badge">DEPTH 5 - MAX DEPTH</span> - Final page in recursive crawl</p>
+
+        <div class="max-depth">
+            <strong>⚠️ Maximum Depth Reached!</strong> Future links on this page should NOT be crawled if depth limit is set.
+        </div>
+
+        <div class="section">
+            <h2>Final Images (2 images)</h2>
+            <div class="images">
+                <div class="image-box">
+                    <img src="./images/image4.png" alt="Final 1">
+                    <p>image4.png</p>
+                </div>
+                <div class="image-box">
+                    <img src="./images/image5.bmp" alt="Final 2">
+                    <p>image5.bmp</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Navigation</h2>
+            <div class="links">
+                <a href="page0.html">← Main</a>
+                <a href="page3.html">← Page 3</a>
+                <a href="page5.html" style="opacity: 0.5; cursor: not-allowed;" title="Should not be crawled (beyond max depth)">→ Page 5 (NOT CRAWLED)</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Page Information</h2>
+            <ul>
+                <li><strong>Page ID:</strong> page4.html (DEPTH 5 - MAXIMUM)</li>
+                <li><strong>Images on this page:</strong> 2</li>
+                <li><strong>Note:</strong> Any links on this page should NOT be followed if max depth is 5</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Test Summary</h2>
+            <p><strong>Expected image count:</strong> 4 + 3 + 4 + 2 + 2 = <strong>15 total images</strong></p>
+            <p><strong>Pages visited:</strong> page0 → page1 → (page2, page3) → page4 = 5 pages</p>
+            <p><strong>Depth limit test:</strong> page5 should NOT be visited (exceeds depth)</p>
+        </div>
+
+        <footer style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; text-align: center; color: #666;">
+            <p>🕷️ Spider Recursive Crawling Test - Page 5/5 (FINAL)</p>
+        </footer>
+    </div>
+</body>
+</html>

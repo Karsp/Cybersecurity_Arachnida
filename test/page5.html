@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spider Test - Page 5 (Beyond Max Depth)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .warning { background: #f8d7da; border: 2px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        h1 { color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕷️ Page 5 - BEYOND MAX DEPTH</h1>
+
+        <div class="warning">
+            <strong>⚠️ WARNING!</strong> This page should NOT be crawled if you set the depth limit to 5!<br><br>
+            If this page was visited, it means:<br>
+            - The depth limiting is NOT working correctly, OR<br>
+            - You set the depth limit to 6 or higher
+        </div>
+
+        <div style="margin: 20px 0; padding: 15px; border-left: 4px solid #721c24;">
+            <h2>Images on Page 5 (Should NOT be downloaded)</h2>
+            <img src="./images/image1.jpg" alt="Should not be downloaded" style="max-width: 200px;">
+            <img src="./images/image2.jpeg" alt="Should not be downloaded" style="max-width: 200px;">
+            <p><strong>If these images are in your download directory, the depth limiting failed!</strong></p>
+        </div>
+
+        <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd;">
+            <h2>Test Result Indicators</h2>
+            <ul>
+                <li>✅ <strong>PASS:</strong> This page is NOT visited or downloaded (depth limit working)</li>
+                <li>❌ <strong>FAIL:</strong> This page IS visited and images downloaded (depth limit NOT working)</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
