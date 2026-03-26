@@ -8,6 +8,7 @@ import argparse
 import sys
 from pathlib import Path
 from typing import Optional, Dict, Any
+from metadata_parser import MetadataParser
 
 
 class Scorpion:
@@ -86,10 +87,60 @@ class Scorpion:
         return True
 
     def run(self):
-        """Main execution (placeholder for now)"""
+        """Main execution - Extract and display metadata for all files"""
         print("🦂 Scorpion metadata extractor")
         print(f"   Files to process: {len(self.files)}")
         print()
+
+        for idx, file_path in enumerate(self.files, 1):
+            print(f"📷 Processing [{idx}/{len(self.files)}]: {file_path.name}")
+            print("-" * 70)
+            
+            parser = MetadataParser(file_path)
+            metadata = parser.extract_all()
+            self.metadata_results[str(file_path)] = metadata
+            
+            # Display extracted metadata
+            self._display_metadata(metadata)
+            print()
+
+    def _display_metadata(self, metadata: Dict[str, Any]):
+        """
+        Display metadata in organized format.
+
+        Args:
+            metadata (Dict): Metadata dictionary from parser
+        """
+        # Basic Metadata
+        if metadata['basic']:
+            print("\n📊 BASIC INFORMATION:")
+            for key, value in metadata['basic'].items():
+                print(f"   {key:.<25} {value}")
+
+        # EXIF Data
+        if metadata['exif']:
+            print("\n📸 EXIF DATA:")
+            for ifd_name, ifd_data in metadata['exif'].items():
+                if ifd_data:
+                    print(f"\n   [{ifd_name}]")
+                    for tag_name, value in ifd_data.items():
+                        # Truncate long values
+                        value_str = str(value)[:60]
+                        print(f"      {tag_name:.<30} {value_str}")
+
+        # IPTC Data
+        if metadata['iptc']:
+            print("\n📝 IPTC DATA:")
+            for key, value in metadata['iptc'].items():
+                value_str = str(value)[:60]
+                print(f"   {key:.<30} {value_str}")
+
+        # Other Metadata
+        if metadata['other']:
+            print("\n🔖 OTHER METADATA:")
+            for key, value in metadata['other'].items():
+                value_str = str(value)[:60]
+                print(f"   {key:.<30} {value_str}")
 
 
 def main():
