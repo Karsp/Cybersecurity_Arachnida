@@ -11,6 +11,7 @@ from typing import Optional, Dict, Any
 from metadata_parser import MetadataParser
 from output_formatter import OutputFormatter, MetadataSummary
 from metadata_modifier import MetadataModifier
+from metadata_filter import MetadataFilter, MetadataAnalyzer
 
 
 class Scorpion:
@@ -216,6 +217,19 @@ def main():
     parser.add_argument('--restore', action='store_true',
                         help='Restore image from backup')
 
+    # Analysis and filter options
+    parser.add_argument('--analyze', action='store_true',
+                        help='Analyze and generate report for all files')
+    
+    parser.add_argument('--filter-format', metavar='FORMAT',
+                        help='Filter by image format (JPEG, PNG, GIF, BMP)')
+    
+    parser.add_argument('--filter-size', nargs=2, type=float, metavar=('MIN_KB', 'MAX_KB'),
+                        help='Filter by file size range in KB')
+    
+    parser.add_argument('--filter-exif', action='store_true',
+                        help='Filter only images with EXIF data')
+
     args = parser.parse_args()
 
     # Validate input
@@ -226,6 +240,9 @@ def main():
     # Modification mode
     if args.modify:
         modify_metadata(args)
+    # Analysis mode
+    elif args.analyze or args.filter_format or args.filter_size or args.filter_exif:
+        analyze_metadata(args)
     else:
         # Extract mode
         # Validate output requirements
@@ -328,6 +345,88 @@ def modify_metadata(args):
         print()
 
     print("✅ Modification complete")
+
+
+def analyze_metadata(args):
+    """
+    Handle metadata analysis and filtering operations.
+
+    Args:
+        args: Parsed command-line arguments
+    """
+    print("📊 Scorpion metadata analyzer")
+    print(f"   Files to analyze: {len(args.files)}")
+    print()
+
+    # Load metadata from all files
+    metadata_list = []
+    for file_path in args.files:
+        path = Path(file_path)
+        if not path.exists():
+            print(f"❌ File not found: {file_path}")
+            continue
+        if not path.is_file():
+            print(f"❌ Not a file: {file_path}")
+            continue
+
+        try:
+            parser = MetadataParser(path)
+            metadata = parser.extract_all()
+            metadata_list.append({
+                'file_path': str(path),
+                'metadata': metadata
+            })
+        except Exception as e:
+            print(f"⚠️  Error reading {file_path}: {e}")
+
+    if not metadata_list:
+        print("❌ No valid files to analyze")
+        sys.exit(1)
+
+    print(f"✅ Loaded metadata from {len(metadata_list)} file(s)")
+    print()
+
+    # Apply filters
+    filter_obj = MetadataFilter(metadata_list)
+
+    if args.filter_format:
+        filter_obj.filter_by_format(args.filter_format)
+        print(f"Filter: Format = {args.filter_format} → {filter_obj.get_count()} results")
+
+    if args.filter_size:
+        min_kb, max_kb = args.filter_size
+        filter_obj.filter_by_size_range(min_kb, max_kb)
+        print(f"Filter: Size {min_kb}-{max_kb} KB → {filter_obj.get_count()} results")
+
+    if args.filter_exif:
+        filter_obj.filter_has_exif()
+        print(f"Filter: Has EXIF → {filter_obj.get_count()} results")
+
+    filtered_results = filter_obj.get_results()
+    print()
+
+    # Generate report
+    if args.analyze or not (args.filter_format or args.filter_size or args.filter_exif):
+        print(MetadataAnalyzer.generate_report(filtered_results))
+    else:
+        # Show filtered results
+        print("📋 FILTERED RESULTS")
+        print("=" * 80)
+        for item in filtered_results:
+            basic = item.get('metadata', {}).get('basic', {})
+            print(f"  {item['file_path']}")
+            print(f"    Format: {basic.get('Format', 'N/A')}")
+            print(f"    Size: {basic.get('File Size', 'N/A')}")
+            print(f"    Dimensions: {basic.get('Dimensions', 'N/A')}")
+        print("=" * 80)
+
+        # Show statistics
+        stats = filter_obj.get_statistics()
+        print(f"\n📊 Statistics for {stats.get('total_count', 0)} files:")
+        if 'size_stats' in stats:
+            size_stats = stats['size_stats']
+            print(f"  Total size: {size_stats['total_kb']:.2f} KB")
+            print(f"  Average size: {size_stats['average_kb']:.2f} KB")
 
 
 if __name__ == '__main__':
