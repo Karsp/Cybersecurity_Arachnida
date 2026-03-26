@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from typing import Optional, Dict, Any
 from metadata_parser import MetadataParser
+from output_formatter import OutputFormatter, MetadataSummary
 
 
 class Scorpion:
@@ -16,10 +17,12 @@ class Scorpion:
 
     VALID_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.bmp'}
 
-    def __init__(self):
+    def __init__(self, output_format: str = 'console', output_file: Optional[str] = None):
         """Initialize Scorpion metadata extractor"""
         self.files = []
-        self.metadata_results = {}
+        self.metadata_results = []
+        self.output_format = output_format
+        self.output_file = output_file
 
     def validate_file(self, file_path: str) -> Optional[Path]:
         """
@@ -94,19 +97,46 @@ class Scorpion:
 
         for idx, file_path in enumerate(self.files, 1):
             print(f"📷 Processing [{idx}/{len(self.files)}]: {file_path.name}")
-            print("-" * 70)
             
             parser = MetadataParser(file_path)
             metadata = parser.extract_all()
-            self.metadata_results[str(file_path)] = metadata
-            
-            # Display extracted metadata
-            self._display_metadata(metadata)
-            print()
+            self.metadata_results.append({
+                'file_path': str(file_path),
+                'metadata': metadata
+            })
+            print(f"   ✅ Metadata extracted")
+
+        print()
+
+        # Format and display output
+        self._display_results()
+
+    def _display_results(self):
+        """Display results based on selected output format"""
+        try:
+            formatter = OutputFormatter(self.output_format, self.output_file)
+
+            for result in self.metadata_results:
+                formatter.add_result(result['file_path'], result['metadata'])
+
+            # For console format, display results directly
+            if self.output_format == 'console':
+                formatter.display()
+                MetadataSummary.print_summary(self.metadata_results)
+            else:
+                # For other formats, save to file
+                if self.output_file:
+                    formatter.save(self.output_file)
+                    print(f"\n✅ Results exported successfully")
+                else:
+                    print("\n⚠️  No output file specified for non-console format")
+
+        except Exception as e:
+            print(f"❌ Error formatting output: {e}")
 
     def _display_metadata(self, metadata: Dict[str, Any]):
         """
-        Display metadata in organized format.
+        Display metadata in organized format (DEPRECATED - use OutputFormatter instead).
 
         Args:
             metadata (Dict): Metadata dictionary from parser
@@ -146,11 +176,19 @@ class Scorpion:
 def main():
     parser = argparse.ArgumentParser(
         description='Scorpion - Extract image metadata',
-        usage='./scorpion FILE1 [FILE2 ...]'
+        usage='./scorpion [-f FORMAT] [-o FILE] FILE1 [FILE2 ...]'
     )
 
     parser.add_argument('files', nargs='+', 
                         help='Image files to analyze')
+    
+    parser.add_argument('-f', '--format', 
+                        choices=['console', 'json', 'csv'],
+                        default='console',
+                        help='Output format (default: console)')
+    
+    parser.add_argument('-o', '--output',
+                        help='Output file path (required for json/csv formats)')
 
     args = parser.parse_args()
 
@@ -159,8 +197,13 @@ def main():
         parser.print_help()
         sys.exit(1)
 
+    # Validate output requirements
+    if args.format != 'console' and not args.output:
+        print("❌ Error: Output file (-o) is required for json/csv formats")
+        sys.exit(1)
+
     # Create Scorpion instance and run
-    scorpion = Scorpion()
+    scorpion = Scorpion(output_format=args.format, output_file=args.output)
     if scorpion.load_files(args.files):
         scorpion.run()
     else:
