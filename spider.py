@@ -21,6 +21,8 @@ class Spider:
     VALID_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.bmp'}
     DEFAULT_PATH = './data/'
     DEFAULT_DEPTH = 5
+    DEFAULT_TIMEOUT = 10   # 10 second timeout
+    DEFAULT_DELAY = 0.5   # delay between requests
 
     def __init__(self, url, recursive=False, depth=DEFAULT_DEPTH, path=DEFAULT_PATH):
         self.url = url
@@ -35,7 +37,7 @@ class Spider:
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
-        self.session.timeout = 10  # 10 second timeout
+        self.session.timeout = self.DEFAULT_TIMEOUT
 
 
     def validate_url(self, url):
@@ -411,7 +413,7 @@ class Spider:
             if self.download_image(image_url, file_path):
                 self.downloaded.add(image_url)
 
-            time.sleep(0.5)
+            time.sleep(self.DEFAULT_DELAY)
 
         print()
 
