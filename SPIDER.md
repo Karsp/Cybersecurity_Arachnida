@@ -58,6 +58,33 @@ python3 spider.py -r -l 2 -p ./my_images https://example.com
 | `--level` | `-l` | Maximum crawl depth (default: 5) |
 | `--path` | `-p` | Output directory for images |
 
+## Advanced Configuration
+
+### Customizing Request Delay
+
+Spider uses a 0.5-second delay between requests to be respectful to web servers. To modify this delay, edit the `DEFAULT_DELAY` constant in the Spider class:
+
+**In `spider.py`, locate the Spider class definition:**
+
+```python
+class Spider:
+    """Web scraper for downloading images"""
+    
+    VALID_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.bmp'}
+    DEFAULT_PATH = './data/'
+    DEFAULT_DEPTH = 5
+    DEFAULT_TIMEOUT = 10
+    DEFAULT_DELAY = 0.5   # <-- Change this value
+```
+
+**Examples:**
+
+- **Faster crawling** (less respectful): `DEFAULT_DELAY = 0.1`
+- **Normal speed** (recommended): `DEFAULT_DELAY = 0.5`
+- **Slower crawling** (more respectful): `DEFAULT_DELAY = 2.0`
+
+**Note:** Be respectful when crawling. A delay of 0.5 seconds or more is recommended to avoid overwhelming the target server.
+
 ## Examples
 
 ### Example 1: Single Page Download
